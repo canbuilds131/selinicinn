@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benimle Çıkar Mısın Selin?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce4ec; /* Açık pembe arka plan */
+            color: #d81b60; /* Koyu pembe yazı rengi */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .container {
+            position: relative;
+            max-width: 90%;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .no-button {
+            transition: all 0.3s ease;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .heart {
+            position: absolute;
+            user-select: none;
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            will-change: transform, opacity;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container flex flex-col items-center justify-center">
+    <h1 id="main-text" class="text-4xl md:text-5xl font-bold mb-8 text-pink-700">Benimle Çıkar mısın Selin?</h1>
+    <div class="flex gap-4">
+        <button id="yes-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400">
+            Evet
+        </button>
+        <button id="no-btn" class="no-button bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400">
+            Hayır
+        </button>
+    </div>
+</div>
+
+<div id="heart-container" class="absolute inset-0 z-0 pointer-events-none"></div>
+
+<div id="message-box" class="message-box text-pink-700">
+    <p class="text-xl">Hayır butonu çok utangaçmış, bana basılmıyormuş. 😊</p>
+    <button onclick="document.getElementById('message-box').style.display = 'none'" class="mt-4 bg-pink-500 text-white py-2 px-4 rounded-full">Kapat</button>
+</div>
+
+<script>
+    const yesBtn = document.getElementById('yes-btn');
+    const noBtn = document.getElementById('no-btn');
+    const mainText = document.getElementById('main-text');
+    const heartContainer = document.getElementById('heart-container');
+    const messageBox = document.getElementById('message-box');
+
+    let hearts = [];
+    let isAnimating = false;
+
+    // "Hayır" butonunu rastgele hareket ettirme fonksiyonu
+    function moveNoButton() {
+        const viewportWidth = window.innerWidth - noBtn.offsetWidth;
+        const viewportHeight = window.innerHeight - noBtn.offsetHeight;
+        const randomX = Math.random() * viewportWidth;
+        const randomY = Math.random() * viewportHeight;
+
+        noBtn.style.position = 'absolute';
+        noBtn.style.left = `${randomX}px`;
+        noBtn.style.top = `${randomY}px`;
+    }
+
+    // Fare "Hayır" butonuna yaklaşınca harekete geçir
+    noBtn.addEventListener('mouseover', moveNoButton);
+    noBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        messageBox.style.display = 'block';
+        moveNoButton();
+    });
+
+    // "Evet" butonuna tıklama olayını dinle
+    yesBtn.addEventListener('click', () => {
+        // Butonları gizle ve ana metni değiştir
+        yesBtn.style.display = 'none';
+        noBtn.style.display = 'none';
+        mainText.textContent = "Seni Seviyorumm";
+        mainText.classList.add('animate-pulse');
+
+        if (!isAnimating) {
+            isAnimating = true;
+            animateHearts();
+            // Kalp eklemeye başla, her 10 milisaniyede bir yeni kalp oluştur
+            setInterval(createHeart, 10);
+        }
+    });
+
+    // Kalp oluşturma fonksiyonu
+    function createHeart() {
+        const heartElement = document.createElement('div');
+        heartElement.classList.add('heart', 'text-4xl', 'md:text-5xl');
+        heartElement.innerHTML = '💗';
+        heartContainer.appendChild(heartElement);
+
+        // Kalplerin rastgele bir noktadan başlaması için başlangıç pozisyonu ayarla
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 2 + 1;
+
+        hearts.push({
+            element: heartElement,
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            opacity: 1,
+            scale: 0.5,
+            rotation: Math.random() * 360,
+        });
+    }
+
+    // Animasyon döngüsü
+    function animateHearts() {
+        for (let i = 0; i < hearts.length; i++) {
+            const heart = hearts[i];
+            
+            // Pozisyon, boyut ve opaklık güncellemesi
+            heart.x += heart.vx;
+            heart.y += heart.vy;
+            heart.opacity -= 0.01;
+            heart.scale += 0.01;
+            heart.rotation += 1;
+
+            heart.element.style.transform = `translate(${heart.x}px, ${heart.y}px) scale(${heart.scale}) rotate(${heart.rotation}deg)`;
+            heart.element.style.opacity = heart.opacity;
+
+            // Kalp ekrandan çıkınca kaldır
+            if (heart.opacity <= 0) {
+                heart.element.remove();
+                hearts.splice(i, 1);
+                i--;
+            }
+        }
+        if (isAnimating) {
+            requestAnimationFrame(animateHearts);
+        }
+    }
+
+    // Ekran boyutları değişince "Hayır" butonunu yeniden konumlandır
+    window.addEventListener('resize', () => {
+        if (noBtn.style.position === 'absolute') {
+            moveNoButton();
+        }
+    });
+
+</script>
+
+</body>
+</html>
+
